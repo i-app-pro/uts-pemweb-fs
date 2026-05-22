@@ -1,63 +1,76 @@
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 const API_URL = "https://uts-pemweb2-fullstuck-dev-production.up.railway.app";
 
-type FormData = {
-    name: string;
-    role: string;
-    image: string;
-};
+export default function DashboardIndex() {
 
-export default function PembicaraEdit() {
+    const [stats, setStats] = useState({
+        categories: 0,
+        events: 0,
+        pembicara: 0,
+    });
 
-    const { id } = useParams();
-    const navigate = useNavigate();
-
-    const { register, handleSubmit, setValue } = useForm<FormData>();
-
-    const fetchSpeaker = async () => {
-        try {
-            const res = await fetch(`${API_URL}/speeker/${id}`);
-            const data = await res.json();
-
-            setValue("name", data.name);
-            setValue("role", data.role);
-            setValue("image", data.image);
-        } catch (error) {
-            console.log(error);
-        }
-    };
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchSpeaker();
-    }, [id]);
+        fetchDashboard();
+    }, []);
 
-    const onSubmit = async (data: FormData) => {
+    const fetchDashboard = async () => {
         try {
-            await fetch(`${API_URL}/speeker/${id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
+            const [categoryRes, eventRes, speakerRes] = await Promise.all([
+                axios.get(`${API_URL}/categories`),
+                axios.get(`${API_URL}/events`),
+                axios.get(`${API_URL}/speeker`),
+            ]);
+
+            setStats({
+                categories: categoryRes.data?.length || 0,
+                events: eventRes.data?.length || 0,
+                pembicara: speakerRes.data?.length || 0,
             });
 
-            navigate("/dashboard/pembicara");
         } catch (error) {
-            console.log(error);
+            console.log("Dashboard error:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="space-y-8">
 
-            <input {...register("name")} placeholder="Name" />
-            <input {...register("role")} placeholder="Role" />
-            <input {...register("image")} placeholder="Image URL" />
+            {/* HEADER */}
+            <div>
+                <h1 className="text-4xl font-black text-slate-800">
+                    Dashboard
+                </h1>
+                <p className="text-slate-500 mt-2">
+                    Welcome back to Event Management Dashboard.
+                </p>
+            </div>
 
-            <button type="submit">Update</button>
-        </form>
+            {/* STATS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <Card title="Total Category" value={stats.categories} loading={loading} />
+                <Card title="Total Events" value={stats.events} loading={loading} />
+                <Card title="Total Speaker" value={stats.pembicara} loading={loading} />
+
+            </div>
+        </div>
+    );
+}
+
+function Card({ title, value, loading }: any) {
+    return (
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+            <p className="text-slate-500 text-sm">{title}</p>
+
+            <h2 className="text-4xl font-black mt-3 text-slate-800">
+                {loading ? "..." : value}
+            </h2>
+        </div>
     );
 }
