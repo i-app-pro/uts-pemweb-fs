@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+const API_URL = "https://uts-pemweb2-fullstuck-dev-production.up.railway.app";
+
 type Category = {
     id: number;
     name: string;
@@ -12,25 +14,14 @@ export default function CategoryIndex() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // GET DATA
     const fetchCategories = async () => {
-
         try {
-
-            const response = await fetch(
-                "http://localhost:3000/categories"
-            );
-
+            const response = await fetch(`${API_URL}/categories`);
             const data = await response.json();
-
             setCategories(data);
-
         } catch (error) {
-
             console.log(error);
-
         } finally {
-
             setLoading(false);
         }
     };
@@ -39,43 +30,29 @@ export default function CategoryIndex() {
         fetchCategories();
     }, []);
 
-    // DELETE DATA
     const handleDelete = async (id: number) => {
-
-        const confirmDelete = confirm(
-            "Yakin ingin menghapus category?"
-        );
-
+        const confirmDelete = confirm("Yakin ingin menghapus category?");
         if (!confirmDelete) return;
 
         try {
-
-            await fetch(
-                `http://localhost:3000/categories/${id}`,
-                {
-                    method: "DELETE",
-                }
-            );
+            await fetch(`${API_URL}/categories/${id}`, {
+                method: "DELETE",
+            });
 
             fetchCategories();
-
         } catch (error) {
-
             console.log(error);
         }
     };
 
     return (
         <div className="space-y-8">
-
-            {/* HEADER */}
             <div className="flex items-center justify-between">
 
                 <div>
                     <h1 className="text-4xl font-black text-slate-800">
                         Category
                     </h1>
-
                     <p className="text-slate-500 mt-2">
                         Manage all event categories.
                     </p>
@@ -83,108 +60,50 @@ export default function CategoryIndex() {
 
                 <Link
                     to="/dashboard/category/create"
-                    className="bg-blue-600 hover:bg-blue-700 transition-all px-6 py-3 rounded-2xl text-white font-semibold shadow-lg"
+                    className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-2xl text-white"
                 >
                     + Add Category
                 </Link>
             </div>
 
-            {/* TABLE */}
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-
+            <div className="bg-white rounded-3xl border shadow-sm overflow-hidden">
                 <table className="w-full">
-
-                    <thead className="bg-slate-50 border-b border-slate-200">
+                    <thead>
                         <tr>
-
-                            <th className="px-6 py-5 text-left text-sm text-slate-500">
-                                No
-                            </th>
-
-                            <th className="px-6 py-5 text-left text-sm text-slate-500">
-                                Category Name
-                            </th>
-
-                            <th className="px-6 py-5 text-left text-sm text-slate-500">
-                                Created At
-                            </th>
-
-                            <th className="px-6 py-5 text-center text-sm text-slate-500">
-                                Action
-                            </th>
+                            <th>No</th>
+                            <th>Name</th>
+                            <th>Created</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
 
                     <tbody>
-
                         {loading ? (
-
                             <tr>
-                                <td
-                                    colSpan={4}
-                                    className="text-center py-20 text-slate-400"
-                                >
-                                    Loading...
-                                </td>
+                                <td colSpan={4}>Loading...</td>
                             </tr>
-
                         ) : categories.length > 0 ? (
-
                             categories.map((item, index) => (
-
-                                <tr
-                                    key={item.id}
-                                    className="border-b border-slate-100 hover:bg-slate-50 transition-all"
-                                >
-
-                                    <td className="px-6 py-5 text-slate-500">
-                                        {index + 1}
+                                <tr key={item.id}>
+                                    <td>{index + 1}</td>
+                                    <td>{item.name}</td>
+                                    <td>
+                                        {new Date(item.createdAt).toLocaleDateString()}
                                     </td>
+                                    <td>
+                                        <Link to={`/dashboard/category/edit/${item.id}`}>
+                                            Edit
+                                        </Link>
 
-                                    <td className="px-6 py-5 font-semibold text-slate-700">
-                                        {item.name}
-                                    </td>
-
-                                    <td className="px-6 py-5 text-slate-500">
-                                        {new Date(
-                                            item.createdAt
-                                        ).toLocaleDateString()}
-                                    </td>
-
-                                    <td className="px-6 py-5">
-
-                                        <div className="flex justify-center gap-3">
-
-                                            <Link
-                                                to={`/dashboard/category/edit/${item.id}`}
-                                            >
-                                                <button className="px-4 py-2 rounded-xl bg-amber-100 text-amber-700 font-medium hover:bg-amber-200 transition-all">
-                                                    Edit
-                                                </button>
-                                            </Link>
-
-                                            <button
-                                                onClick={() =>
-                                                    handleDelete(item.id)
-                                                }
-                                                className="px-4 py-2 rounded-xl bg-red-100 text-red-700 font-medium hover:bg-red-200 transition-all"
-                                            >
-                                                Delete
-                                            </button>
-                                        </div>
+                                        <button onClick={() => handleDelete(item.id)}>
+                                            Delete
+                                        </button>
                                     </td>
                                 </tr>
                             ))
-
                         ) : (
-
                             <tr>
-                                <td
-                                    colSpan={4}
-                                    className="text-center py-20 text-slate-400"
-                                >
-                                    No category data available.
-                                </td>
+                                <td colSpan={4}>No data</td>
                             </tr>
                         )}
                     </tbody>
