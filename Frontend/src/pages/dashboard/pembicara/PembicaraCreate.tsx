@@ -1,6 +1,8 @@
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = "https://uts-pemweb2-fullstuck-dev-production.up.railway.app";
+
 type FormData = {
     name: string;
     role: string;
@@ -11,124 +13,39 @@ export default function PembicaraCreate() {
 
     const navigate = useNavigate();
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm<FormData>();
+    const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
 
     const onSubmit = async (data: FormData) => {
-
         try {
+            const res = await fetch(`${API_URL}/speeker`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
 
-            await fetch(
-                "http://localhost:3000/speeker",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(data),
-                }
-            );
+            if (!res.ok) throw new Error("Failed");
 
             navigate("/dashboard/pembicara");
-
         } catch (error) {
-
             console.log(error);
         }
     };
 
     return (
-        <div className="max-w-4xl">
+        <form onSubmit={handleSubmit(onSubmit)}>
 
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+            <input {...register("name", { required: true })} placeholder="Name" />
+            {errors.name && <p>Name required</p>}
 
-                <div className="mb-8">
+            <input {...register("role", { required: true })} placeholder="Role" />
+            {errors.role && <p>Role required</p>}
 
-                    <h1 className="text-3xl font-black text-slate-800">
-                        Add Speaker
-                    </h1>
+            <input {...register("image", { required: true })} placeholder="Image URL" />
+            {errors.image && <p>Image required</p>}
 
-                    <p className="text-slate-500 mt-2">
-                        Create a new speaker profile.
-                    </p>
-                </div>
-
-                <form
-                    onSubmit={handleSubmit(onSubmit)}
-                    className="space-y-6"
-                >
-
-                    <div>
-
-                        <label className="block mb-2 font-medium text-slate-700">
-                            Name
-                        </label>
-
-                        <input
-                            type="text"
-                            {...register("name", {
-                                required: "Name is required",
-                            })}
-                            className="w-full border border-slate-300 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-
-                        <p className="text-red-500 text-sm mt-2">
-                            {errors.name?.message}
-                        </p>
-                    </div>
-
-                    <div>
-
-                        <label className="block mb-2 font-medium text-slate-700">
-                            Role
-                        </label>
-
-                        <input
-                            type="text"
-                            {...register("role", {
-                                required: "Role is required",
-                            })}
-                            className="w-full border border-slate-300 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-
-                        <p className="text-red-500 text-sm mt-2">
-                            {errors.role?.message}
-                        </p>
-                    </div>
-
-                    <div>
-
-                        <label className="block mb-2 font-medium text-slate-700">
-                            Image URL
-                        </label>
-
-                        <input
-                            type="text"
-                            {...register("image", {
-                                required: "Image URL is required",
-                            })}
-                            className="w-full border border-slate-300 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-
-                        <p className="text-red-500 text-sm mt-2">
-                            {errors.image?.message}
-                        </p>
-                    </div>
-
-                    <div>
-
-                        <button
-                            type="submit"
-                            className="bg-blue-600 hover:bg-blue-700 transition-all px-8 py-4 rounded-2xl text-white font-semibold shadow-lg"
-                        >
-                            Save Speaker
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+            <button type="submit">Save</button>
+        </form>
     );
 }
