@@ -7,7 +7,10 @@ import pembicaraRoute from './routes/pembicaraRoute';
 const app = express();
 const port = 3000; 
 
-app.use(cors());
+app.use(cors({
+  origin: "https://uts-pemweb-fs.vercel.app",
+  credentials: true
+}));
 app.use(express.json());
 
 app.get('/', (req, res) => {
